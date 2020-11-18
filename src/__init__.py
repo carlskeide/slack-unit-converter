@@ -2,10 +2,11 @@
 import logging
 from argparse import ArgumentParser
 
-from flask import Flask
+from flask import Flask, render_template, abort
 from flask_redis import FlaskRedis
-from flack import Flack
+from flack import Flack, oauth
 from flack.message import PrivateResponse
+import flack.oauth
 
 from . import config
 
@@ -75,3 +76,26 @@ def command_define(text, **kwargs):
 
     except Exception:
         return PrivateResponse("Usage: `/define *new_unit* = *qty* *unit*`")
+
+@app.route('/')
+def index():
+    context = {
+        "app_title": "Unit Converter",
+        "button": oauth.render_button()
+    }
+
+    return render_template("index.tpl", **context)
+
+
+@app.route('/callback')
+@oauth.callback
+def callback(credentials):
+    try:
+        # Not used for anything right now.
+        redis.hset("AUTH", credentials.team_id, credentials.access_token)
+
+    except Exception:
+        logger.exception("Unable to store credentials")
+        abort(500, "Something went wrong.")
+
+    return "Seems like everything went great, go try it out!"
