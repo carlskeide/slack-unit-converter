@@ -1,5 +1,6 @@
 # coding=utf-8
 import logging
+from pathlib import Path
 from argparse import ArgumentParser
 
 from flask import Flask, render_template, abort
@@ -77,7 +78,10 @@ def command_define(text, **kwargs):
     except Exception:
         return PrivateResponse("Usage: `/define *new_unit* = *qty* *unit*`")
 
-@app.route('/')
+
+PREFIX_PATH = Path(config.FLACK_URL_PREFIX)
+
+@app.route(str(PREFIX_PATH))
 def index():
     context = {
         "app_title": "Unit Converter",
@@ -87,7 +91,7 @@ def index():
     return render_template("index.tpl", **context)
 
 
-@app.route('/callback')
+@app.route(str(PREFIX_PATH / "callback"))
 @oauth.callback
 def callback(credentials):
     try:
